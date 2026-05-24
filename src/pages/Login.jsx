@@ -68,7 +68,6 @@ function Login() {
         }
       );
 
-      const data =
       await response.json();
 
       // SUCCESS LOGIN
