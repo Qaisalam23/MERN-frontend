@@ -68,7 +68,7 @@ function Signup(){
       const response =
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/signup-data`,
+        `${process.env.REACT_APP_API_URL}/signup-data`,
 
         {
           method:"POST",

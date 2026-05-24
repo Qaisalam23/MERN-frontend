@@ -48,7 +48,7 @@ function Login() {
       const response =
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/login-data`,
+        `${process.env.REACT_APP_API_URL}/login-data`,
 
         {
           method:"POST",

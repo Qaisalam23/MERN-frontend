@@ -40,7 +40,7 @@ function Tasks(){
       const response =
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/task-projects`,
+        `${process.env.REACT_APP_API_URL}/task-projects`,
 
         {
           credentials:"include"
@@ -79,7 +79,7 @@ function Tasks(){
 
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/update-project-status`,
+        `${process.env.REACT_APP_API_URL}/update-project-status`,
 
         {
 

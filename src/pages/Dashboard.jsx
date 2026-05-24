@@ -84,7 +84,7 @@ function Dashboard() {
       const response =
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/dashboard`,
+        `${process.env.REACT_APP_API_URL}/dashboard`,
 
         {
           method:"GET",
@@ -114,7 +114,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        `${import.meta.env.VITE_API_URL}/get-analytics`,
+        `${process.env.REACT_APP_API_URL}/get-analytics`,
 
         {
           withCredentials:true
@@ -141,7 +141,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        `${import.meta.env.VITE_API_URL}/projects`,
+        `${process.env.REACT_APP_API_URL}/projects`,
 
         {
           withCredentials:true
@@ -168,7 +168,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        `${import.meta.env.VITE_API_URL}/task-projects`,
+        `${process.env.REACT_APP_API_URL}/task-projects`,
 
         {
           withCredentials:true
@@ -203,7 +203,7 @@ function Dashboard() {
 
       await fetch(
 
-        `${import.meta.env.VITE_API_URL}/logout`,
+        `${process.env.REACT_APP_API_URL}/logout`,
 
         {
           method:"GET",
