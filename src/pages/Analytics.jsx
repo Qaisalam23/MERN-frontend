@@ -37,7 +37,7 @@ function Analytics(){
       const response =
       await axios.get(
 
-        "http://localhost:5000/get-analytics",
+        `${import.meta.env.VITE_API_URL}/get-analytics`,
 
         {
           withCredentials:true

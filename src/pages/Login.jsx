@@ -48,7 +48,7 @@ function Login() {
       const response =
       await fetch(
 
-        "http://localhost:5000/login-data",
+        `${import.meta.env.VITE_API_URL}/login-data`,
 
         {
           method:"POST",

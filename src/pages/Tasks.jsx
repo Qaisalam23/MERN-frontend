@@ -40,7 +40,7 @@ function Tasks(){
       const response =
       await fetch(
 
-        "http://localhost:5000/task-projects",
+        `${import.meta.env.VITE_API_URL}/task-projects`,
 
         {
           credentials:"include"
@@ -79,7 +79,7 @@ function Tasks(){
 
       await fetch(
 
-        "http://localhost:5000/update-project-status",
+        `${import.meta.env.VITE_API_URL}/update-project-status`,
 
         {
 

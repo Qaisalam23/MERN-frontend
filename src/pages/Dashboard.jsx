@@ -84,7 +84,7 @@ function Dashboard() {
       const response =
       await fetch(
 
-        "http://localhost:5000/dashboard",
+        `${import.meta.env.VITE_API_URL}/dashboard`,
 
         {
           method:"GET",
@@ -114,7 +114,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        "http://localhost:5000/get-analytics",
+        `${import.meta.env.VITE_API_URL}/get-analytics`,
 
         {
           withCredentials:true
@@ -141,7 +141,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        "http://localhost:5000/projects",
+        `${import.meta.env.VITE_API_URL}/projects`,
 
         {
           withCredentials:true
@@ -168,7 +168,7 @@ function Dashboard() {
       const response =
       await axios.get(
 
-        "http://localhost:5000/task-projects",
+        `${import.meta.env.VITE_API_URL}/task-projects`,
 
         {
           withCredentials:true
@@ -203,7 +203,7 @@ function Dashboard() {
 
       await fetch(
 
-        "http://localhost:5000/logout",
+        `${import.meta.env.VITE_API_URL}/logout`,
 
         {
           method:"GET",

@@ -46,7 +46,7 @@ function Projects() {
     try {
 
       const response = await fetch(
-        "http://localhost:5000/projects",
+        `${import.meta.env.VITE_API_URL}/projects`,
         {
           method: "GET",
 
@@ -117,7 +117,7 @@ function Projects() {
 
         const response =
           await fetch(
-            "http://localhost:5000/create-project",
+            `${import.meta.env.VITE_API_URL}/create-project`,
             {
               method: "POST",
 
@@ -192,7 +192,7 @@ function Projects() {
 
       const response =
         await fetch(
-          "http://localhost:5000/add-member",
+          `${import.meta.env.VITE_API_URL}/add-member`,
           {
             method: "POST",
 
@@ -278,7 +278,7 @@ function Projects() {
 
       const response =
         await fetch(
-          "http://localhost:5000/remove-member",
+          `${import.meta.env.VITE_API_URL}/remove-member`,
           {
             method: "POST",
 
