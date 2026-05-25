@@ -1,6 +1,7 @@
 import {
   useEffect,
-  useState
+  useState,
+  useCallback
 } from "react";
 
 import {
@@ -66,82 +67,97 @@ function Projects() {
     setMemberError
   ] = useState({});
 
+  const showSuccess =
+  useCallback(
+
+    (message)=>{
+
+      setSuccessMessage(message);
+
+      setTimeout(()=>{
+
+        setSuccessMessage("");
+
+      },3000);
+    },
+
+    []
+  );
+
+  const showError =
+  useCallback(
+
+    (message)=>{
+
+      setErrorMessage(message);
+
+      setTimeout(()=>{
+
+        setErrorMessage("");
+
+      },3000);
+    },
+
+    []
+  );
+
   const fetchProjects =
-  async()=>{
+  useCallback(
 
-    try {
+    async()=>{
 
-      const response =
-      await fetch(
+      try {
 
-        `${process.env.REACT_APP_API_URL}/projects`,
+        const response =
+        await fetch(
 
-        {
-          method:"GET",
+          `${process.env.REACT_APP_API_URL}/projects`,
 
-          credentials:"include"
+          {
+            method:"GET",
+
+            credentials:"include"
+          }
+        );
+
+        // UNAUTHORIZED
+
+        if(response.status === 401){
+
+          navigate("/login");
+
+          return;
         }
-      );
 
-      // UNAUTHORIZED
+        const data =
+        await response.json();
 
-      if(response.status === 401){
+        setProjects(
+          data.reverse()
+        );
 
-        navigate("/login");
+      } catch (error) {
 
-        return;
+        console.log(error);
+
+        showError(
+          "Unable to fetch projects"
+        );
+
+      } finally {
+
+        setLoading(false);
       }
+    },
 
-      const data =
-      await response.json();
-
-      setProjects(
-        data.reverse()
-      );
-
-    } catch (error) {
-
-      console.log(error);
-
-      showError(
-        "Unable to fetch projects"
-      );
-
-    } finally {
-
-      setLoading(false);
-    }
-  };
+    [navigate,showError]
+  );
 
   useEffect(()=>{
 
     fetchProjects();
 
   },[fetchProjects]);
-
-  const showSuccess =
-  (message)=>{
-
-    setSuccessMessage(message);
-
-    setTimeout(()=>{
-
-      setSuccessMessage("");
-
-    },3000);
-  };
-
-  const showError =
-  (message)=>{
-
-    setErrorMessage(message);
-
-    setTimeout(()=>{
-
-      setErrorMessage("");
-
-    },3000);
-  };
 
   const handleCreateProject =
   async(e)=>{

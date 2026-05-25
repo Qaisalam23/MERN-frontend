@@ -1,6 +1,7 @@
 import {
   useEffect,
-  useState
+  useState,
+  useCallback
 } from "react";
 
 import {
@@ -53,47 +54,52 @@ function Tasks(){
   ] = useState(false);
 
   const fetchProjects =
-  async()=>{
+  useCallback(
 
-    try{
+    async()=>{
 
-      const response =
-      await fetch(
+      try{
 
-        `${process.env.REACT_APP_API_URL}/task-projects`,
+        const response =
+        await fetch(
 
-        {
-          credentials:"include"
+          `${process.env.REACT_APP_API_URL}/task-projects`,
+
+          {
+            credentials:"include"
+          }
+        );
+
+        // UNAUTHORIZED
+
+        if(response.status === 401){
+
+          navigate("/login");
+
+          return;
         }
-      );
 
-      // UNAUTHORIZED
+        const data =
+        await response.json();
 
-      if(response.status === 401){
+        setProjects(data);
 
-        navigate("/login");
+      }catch(error){
 
-        return;
+        console.log(error);
+
+        setError(
+          "Failed to load tasks"
+        );
+
+      }finally{
+
+        setLoading(false);
       }
+    },
 
-      const data =
-      await response.json();
-
-      setProjects(data);
-
-    }catch(error){
-
-      console.log(error);
-
-      setError(
-        "Failed to load tasks"
-      );
-
-    }finally{
-
-      setLoading(false);
-    }
-  };
+    [navigate]
+  );
 
   useEffect(()=>{
 

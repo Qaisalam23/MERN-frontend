@@ -1,6 +1,7 @@
 import {
   useEffect,
-  useState
+  useState,
+  useCallback
 } from "react";
 
 import {
@@ -62,198 +63,231 @@ function Dashboard() {
     setError
   ] = useState("");
 
-  
+  const fetchDashboard =
+  useCallback(
+
+    async()=>{
+
+      try{
+
+        const response =
+        await fetch(
+
+          `${process.env.REACT_APP_API_URL}/dashboard`,
+
+          {
+            method:"GET",
+
+            credentials:"include"
+          }
+        );
+
+        // UNAUTHORIZED
+
+        if(response.status === 401){
+
+          localStorage.removeItem(
+            "userEmail"
+          );
+
+          navigate("/login");
+
+          return;
+        }
+
+        const data =
+        await response.json();
+
+        setUser(data.user);
+
+      }catch(error){
+
+        console.log(error);
+
+        setError(
+          "Unable to fetch user"
+        );
+      }
+    },
+
+    [navigate]
+  );
+
+  const fetchAnalytics =
+  useCallback(
+
+    async()=>{
+
+      try{
+
+        const response =
+        await axios.get(
+
+          `${process.env.REACT_APP_API_URL}/get-analytics`,
+
+          {
+            withCredentials:true
+          }
+        );
+
+        setAnalytics(
+          response.data
+        );
+
+      }catch(error){
+
+        console.log(error);
+
+        // UNAUTHORIZED
+
+        if(
+          error.response?.status === 401
+        ){
+
+          navigate("/login");
+        }
+      }
+    },
+
+    [navigate]
+  );
+
+  const fetchProjects =
+  useCallback(
+
+    async()=>{
+
+      try{
+
+        const response =
+        await axios.get(
+
+          `${process.env.REACT_APP_API_URL}/projects`,
+
+          {
+            withCredentials:true
+          }
+        );
+
+        setProjects(
+          response.data
+        );
+
+      }catch(error){
+
+        console.log(error);
+
+        // UNAUTHORIZED
+
+        if(
+          error.response?.status === 401
+        ){
+
+          navigate("/login");
+        }
+      }
+    },
+
+    [navigate]
+  );
+
+  const fetchTasks =
+  useCallback(
+
+    async()=>{
+
+      try{
+
+        const response =
+        await axios.get(
+
+          `${process.env.REACT_APP_API_URL}/task-projects`,
+
+          {
+            withCredentials:true
+          }
+        );
+
+        const sortedTasks =
+        response.data.sort(
+
+          (a,b)=>
+
+            new Date(b.updatedAt) -
+            new Date(a.updatedAt)
+        );
+
+        setTasks(
+          sortedTasks
+        );
+
+      }catch(error){
+
+        console.log(error);
+
+        // UNAUTHORIZED
+
+        if(
+          error.response?.status === 401
+        ){
+
+          navigate("/login");
+        }
+      }
+    },
+
+    [navigate]
+  );
 
   const loadDashboard =
-  async()=>{
+  useCallback(
 
-    try{
+    async()=>{
 
-      await Promise.all([
+      try{
 
-        fetchDashboard(),
+        await Promise.all([
 
-        fetchAnalytics(),
+          fetchDashboard(),
 
-        fetchProjects(),
+          fetchAnalytics(),
 
-        fetchTasks()
-      ]);
+          fetchProjects(),
 
-    }catch(error){
+          fetchTasks()
+        ]);
 
-      console.log(error);
+      }catch(error){
 
-      setError(
-        "Failed to load dashboard"
-      );
+        console.log(error);
 
-    }finally{
+        setError(
+          "Failed to load dashboard"
+        );
 
-      setLoading(false);
-    }
-  };
+      }finally{
+
+        setLoading(false);
+      }
+    },
+
+    [
+
+      fetchDashboard,
+
+      fetchAnalytics,
+
+      fetchProjects,
+
+      fetchTasks
+    ]
+  );
+
   useEffect(()=>{
 
     loadDashboard();
 
   },[loadDashboard]);
-
-  const fetchDashboard =
-  async()=>{
-
-    try{
-
-      const response =
-      await fetch(
-
-        `${process.env.REACT_APP_API_URL}/dashboard`,
-
-        {
-          method:"GET",
-
-          credentials:"include"
-        }
-      );
-
-      // UNAUTHORIZED
-
-      if(response.status === 401){
-
-        localStorage.removeItem(
-          "userEmail"
-        );
-
-        navigate("/login");
-
-        return;
-      }
-
-      const data =
-      await response.json();
-
-      setUser(data.user);
-
-    }catch(error){
-
-      console.log(error);
-
-      setError(
-        "Unable to fetch user"
-      );
-    }
-  };
-
-  const fetchAnalytics =
-  async()=>{
-
-    try{
-
-      const response =
-      await axios.get(
-
-        `${process.env.REACT_APP_API_URL}/get-analytics`,
-
-        {
-          withCredentials:true
-        }
-      );
-
-      setAnalytics(
-        response.data
-      );
-
-    }catch(error){
-
-      console.log(error);
-
-      // UNAUTHORIZED
-
-      if(
-        error.response?.status === 401
-      ){
-
-        navigate("/login");
-      }
-    }
-  };
-
-  const fetchProjects =
-  async()=>{
-
-    try{
-
-      const response =
-      await axios.get(
-
-        `${process.env.REACT_APP_API_URL}/projects`,
-
-        {
-          withCredentials:true
-        }
-      );
-
-      setProjects(
-        response.data
-      );
-
-    }catch(error){
-
-      console.log(error);
-
-      // UNAUTHORIZED
-
-      if(
-        error.response?.status === 401
-      ){
-
-        navigate("/login");
-      }
-    }
-  };
-
-  const fetchTasks =
-  async()=>{
-
-    try{
-
-      const response =
-      await axios.get(
-
-        `${process.env.REACT_APP_API_URL}/task-projects`,
-
-        {
-          withCredentials:true
-        }
-      );
-
-      const sortedTasks =
-      response.data.sort(
-
-        (a,b)=>
-
-          new Date(b.updatedAt) -
-          new Date(a.updatedAt)
-      );
-
-      setTasks(
-        sortedTasks
-      );
-
-    }catch(error){
-
-      console.log(error);
-
-      // UNAUTHORIZED
-
-      if(
-        error.response?.status === 401
-      ){
-
-        navigate("/login");
-      }
-    }
-  };
 
   const handleLogout =
   async()=>{
@@ -507,9 +541,9 @@ function Dashboard() {
 
                     <div
                     className={`dashboard-task-status ${
-                      task.status === "Done"
+                      task.currentStatus === "Done"
                       ? "done"
-                      : task.status === "In Progress"
+                      : task.currentStatus === "In Progress"
                       ? "progress"
                       : "todo"
                     }`}

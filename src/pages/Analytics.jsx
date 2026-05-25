@@ -1,6 +1,7 @@
 import {
   useEffect,
-  useState
+  useState,
+  useCallback
 } from "react";
 
 import {
@@ -45,48 +46,53 @@ function Analytics(){
   ] = useState("");
 
   const fetchAnalytics =
-  async()=>{
+  useCallback(
 
-    try{
+    async()=>{
 
-      const response =
-      await axios.get(
+      try{
 
-        `${process.env.REACT_APP_API_URL}/get-analytics`,
+        const response =
+        await axios.get(
 
-        {
-          withCredentials:true
+          `${process.env.REACT_APP_API_URL}/get-analytics`,
+
+          {
+            withCredentials:true
+          }
+        );
+
+        setAnalytics(
+          response.data
+        );
+
+      }catch(error){
+
+        console.log(error);
+
+        // UNAUTHORIZED
+
+        if(
+          error.response?.status === 401
+        ){
+
+          navigate("/login");
+
+          return;
         }
-      );
 
-      setAnalytics(
-        response.data
-      );
+        setError(
+          "Failed to load analytics"
+        );
 
-    }catch(error){
+      }finally{
 
-      console.log(error);
-
-      // UNAUTHORIZED
-
-      if(
-        error.response?.status === 401
-      ){
-
-        navigate("/login");
-
-        return;
+        setLoading(false);
       }
+    },
 
-      setError(
-        "Failed to load analytics"
-      );
-
-    }finally{
-
-      setLoading(false);
-    }
-  };
+    [navigate]
+  );
 
   useEffect(()=>{
 
