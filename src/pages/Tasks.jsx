@@ -3,6 +3,10 @@ import {
   useState
 } from "react";
 
+import {
+  useNavigate
+} from "react-router-dom";
+
 import Sidebar
 from "../components/Sidebar";
 
@@ -10,10 +14,23 @@ import "../styles/Tasks.css";
 
 function Tasks(){
 
-  const [projects,setProjects] =
-  useState([]);
+  const navigate =
+  useNavigate();
 
-  // MODAL
+  const [
+    projects,
+    setProjects
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    error,
+    setError
+  ] = useState("");
 
   const [
     showModal,
@@ -30,7 +47,10 @@ function Tasks(){
     setAnswerText
   ] = useState("");
 
-  // FETCH PROJECTS
+  const [
+    submitting,
+    setSubmitting
+  ] = useState(false);
 
   const fetchProjects =
   async()=>{
@@ -47,6 +67,15 @@ function Tasks(){
         }
       );
 
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        navigate("/login");
+
+        return;
+      }
+
       const data =
       await response.json();
 
@@ -55,6 +84,14 @@ function Tasks(){
     }catch(error){
 
       console.log(error);
+
+      setError(
+        "Failed to load tasks"
+      );
+
+    }finally{
+
+      setLoading(false);
     }
   };
 
@@ -63,8 +100,6 @@ function Tasks(){
     fetchProjects();
 
   },[]);
-
-  // UPDATE STATUS
 
   const updateStatus =
   async(
@@ -77,6 +112,7 @@ function Tasks(){
 
     try{
 
+      const response =
       await fetch(
 
         `${process.env.REACT_APP_API_URL}/update-project-status`,
@@ -101,15 +137,26 @@ function Tasks(){
         }
       );
 
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        navigate("/login");
+
+        return;
+      }
+
       fetchProjects();
 
     }catch(error){
 
       console.log(error);
+
+      setError(
+        "Failed to update status"
+      );
     }
   };
-
-  // HANDLE STATUS
 
   const handleStatusChange = (
 
@@ -139,21 +186,26 @@ function Tasks(){
     );
   };
 
-  // SUBMIT ANSWER
-
   const submitDoneAnswer =
   async()=>{
 
     if(!answerText.trim()){
+
+      setError(
+        "Answer required"
+      );
 
       return;
     }
 
     try{
 
+      setSubmitting(true);
+
+      const response =
       await fetch(
 
-        "http://localhost:5000/update-project-status",
+        `${process.env.REACT_APP_API_URL}/update-project-status`,
 
         {
 
@@ -179,6 +231,15 @@ function Tasks(){
         }
       );
 
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        navigate("/login");
+
+        return;
+      }
+
       setShowModal(false);
 
       setAnswerText("");
@@ -188,6 +249,14 @@ function Tasks(){
     }catch(error){
 
       console.log(error);
+
+      setError(
+        "Failed to submit answer"
+      );
+
+    }finally{
+
+      setSubmitting(false);
     }
   };
 
@@ -206,11 +275,36 @@ function Tasks(){
         </h1>
 
         {
-          projects.length === 0 ? (
+          error && (
+
+            <div className="error-message">
+
+              {error}
+
+            </div>
+          )
+        }
+
+        {
+          loading ? (
+
+            <div className="small-loader">
+
+              Loading Tasks...
+
+            </div>
+
+          ) : projects.length === 0 ? (
 
             <div className="no-task">
 
-              No Tasks Available
+              <i className="fa-solid fa-list-check"></i>
+
+              <p>
+
+                No Tasks Available
+
+              </p>
 
             </div>
 
@@ -226,8 +320,6 @@ function Tasks(){
                   key={project._id}
                   >
 
-                    {/* TITLE */}
-
                     <h2>
 
                       {
@@ -235,8 +327,6 @@ function Tasks(){
                       }
 
                     </h2>
-
-                    {/* DESCRIPTION */}
 
                     <div className="task-description">
 
@@ -255,8 +345,6 @@ function Tasks(){
                       </p>
 
                     </div>
-
-                    {/* INFO */}
 
                     <div className="task-info">
 
@@ -293,8 +381,6 @@ function Tasks(){
                       </span>
 
                     </div>
-
-                    {/* STATUS */}
 
                     <select
 
@@ -338,8 +424,6 @@ function Tasks(){
 
                     </select>
 
-                    {/* ANSWER */}
-
                     {
                       project.currentStatus
                       === "Done"
@@ -378,8 +462,6 @@ function Tasks(){
 
       </div>
 
-      {/* MODAL */}
-
       {
         showModal && (
 
@@ -412,9 +494,23 @@ function Tasks(){
                 onClick={
                   submitDoneAnswer
                 }
+
+                disabled={
+                  submitting
+                }
               >
 
-                Submit
+                {
+                  submitting
+
+                  ?
+
+                  "Submitting..."
+
+                  :
+
+                  "Submit"
+                }
 
               </button>
 

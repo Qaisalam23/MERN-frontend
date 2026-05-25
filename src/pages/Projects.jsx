@@ -1,4 +1,11 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState
+} from "react";
+
+import {
+  useNavigate
+} from "react-router-dom";
 
 import Sidebar from "../components/Sidebar";
 
@@ -6,20 +13,43 @@ import "../styles/Projects.css";
 
 function Projects() {
 
-  const [projectName, setProjectName] =
-    useState("");
+  const navigate =
+  useNavigate();
 
-  const [description, setDescription] =
-    useState("");
+  const [
+    projectName,
+    setProjectName
+  ] = useState("");
 
-  const [dueDate, setDueDate] =
-    useState("");
+  const [
+    description,
+    setDescription
+  ] = useState("");
 
-  const [priority, setPriority] =
-    useState("Medium");
+  const [
+    dueDate,
+    setDueDate
+  ] = useState("");
 
-  const [projects, setProjects] =
-    useState([]);
+  const [
+    priority,
+    setPriority
+  ] = useState("Medium");
+
+  const [
+    projects,
+    setProjects
+  ] = useState([]);
+
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    creating,
+    setCreating
+  ] = useState(false);
 
   const [
     successMessage,
@@ -31,31 +61,39 @@ function Projects() {
     setErrorMessage
   ] = useState("");
 
-  // MEMBER ERROR
   const [
     memberError,
     setMemberError
   ] = useState({});
 
-  // =========================
-  // FETCH PROJECTS
-  // =========================
-
-  const fetchProjects = async () => {
+  const fetchProjects =
+  async()=>{
 
     try {
 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/projects`,
-        {
-          method: "GET",
+      const response =
+      await fetch(
 
-          credentials: "include"
+        `${process.env.REACT_APP_API_URL}/projects`,
+
+        {
+          method:"GET",
+
+          credentials:"include"
         }
       );
 
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        navigate("/login");
+
+        return;
+      }
+
       const data =
-        await response.json();
+      await response.json();
 
       setProjects(
         data.reverse()
@@ -65,159 +103,213 @@ function Projects() {
 
       console.log(error);
 
+      showError(
+        "Unable to fetch projects"
+      );
+
+    } finally {
+
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
+  useEffect(()=>{
 
     fetchProjects();
 
-  }, []);
+  },[]);
 
-  // =========================
-  // SUCCESS MESSAGE
-  // =========================
-
-  const showSuccess = (message) => {
+  const showSuccess =
+  (message)=>{
 
     setSuccessMessage(message);
 
-    setTimeout(() => {
+    setTimeout(()=>{
 
       setSuccessMessage("");
 
-    }, 3000);
+    },3000);
   };
 
-  // =========================
-  // ERROR MESSAGE
-  // =========================
-
-  const showError = (message) => {
+  const showError =
+  (message)=>{
 
     setErrorMessage(message);
 
-    setTimeout(() => {
+    setTimeout(()=>{
 
       setErrorMessage("");
 
-    }, 3000);
+    },3000);
   };
 
-  // =========================
-  // CREATE PROJECT
-  // =========================
-
   const handleCreateProject =
-    async (e) => {
+  async(e)=>{
 
-      e.preventDefault();
+    e.preventDefault();
 
-      try {
+    if(!projectName.trim()){
 
-        const response =
-          await fetch(
-            `${process.env.REACT_APP_API_URL}/create-project`,
-            {
-              method: "POST",
+      showError(
+        "Project name required"
+      );
 
-              credentials:
-                "include",
+      return;
+    }
 
-              headers: {
-                "Content-Type":
-                  "application/json"
-              },
+    if(projectName.length < 3){
 
-              body: JSON.stringify({
+      showError(
+        "Project name too short"
+      );
 
-                projectName,
+      return;
+    }
 
-                description,
+    try {
 
-                dueDate,
+      setCreating(true);
 
-                priority
-              })
-            }
-          );
+      const response =
+      await fetch(
 
-        const data =
-          await response.json();
+        `${process.env.REACT_APP_API_URL}/create-project`,
 
-        // ERROR
-        if (!response.ok) {
+        {
+          method:"POST",
 
-          showError(data.message);
+          credentials:"include",
 
-          return;
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
+
+          body:JSON.stringify({
+
+            projectName,
+
+            description,
+
+            dueDate,
+
+            priority
+          })
         }
+      );
 
-        // SUCCESS
-        showSuccess(data.message);
+      const data =
+      await response.json();
 
-        fetchProjects();
+      // UNAUTHORIZED
 
-        setProjectName("");
+      if(response.status === 401){
 
-        setDescription("");
+        navigate("/login");
 
-        setDueDate("");
-
-        setPriority("Medium");
-
-      } catch (error) {
-
-        console.log(error);
-
-        showError("Server Error");
+        return;
       }
-    };
 
-  // =========================
-  // ADD MEMBER
-  // =========================
+      if(!response.ok){
 
-  const addMember = async (
+        showError(
+          data.message
+        );
+
+        return;
+      }
+
+      showSuccess(
+        data.message
+      );
+
+      fetchProjects();
+
+      setProjectName("");
+
+      setDescription("");
+
+      setDueDate("");
+
+      setPriority("Medium");
+
+    } catch (error) {
+
+      console.log(error);
+
+      showError(
+        "Server Error"
+      );
+
+    } finally {
+
+      setCreating(false);
+    }
+  };
+
+  const addMember =
+  async(
     e,
     projectId
-  ) => {
+  )=>{
 
     e.preventDefault();
 
     const email =
-      e.target.email.value;
+    e.target.email.value;
+
+    if(!email.includes("@")){
+
+      setMemberError({
+
+        ...memberError,
+
+        [projectId]:
+        "Invalid email"
+      });
+
+      return;
+    }
 
     try {
 
       const response =
-        await fetch(
-          `${process.env.REACT_APP_API_URL}/add-member`,
-          {
-            method: "POST",
+      await fetch(
 
-            credentials:
-              "include",
+        `${process.env.REACT_APP_API_URL}/add-member`,
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
+        {
+          method:"POST",
 
-            body: JSON.stringify({
+          credentials:"include",
 
-              projectId,
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
 
-              email
-            })
-          }
-        );
+          body:JSON.stringify({
+
+            projectId,
+
+            email
+          })
+        }
+      );
 
       const data =
-        await response.json();
+      await response.json();
 
-      // ERROR
-      if (!response.ok) {
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        navigate("/login");
+
+        return;
+      }
+
+      if(!response.ok){
 
         setMemberError({
 
@@ -227,91 +319,103 @@ function Projects() {
           data.message
         });
 
-        setTimeout(() => {
+        setTimeout(()=>{
 
           setMemberError(
-            (prev) => ({
+            (prev)=>({
 
               ...prev,
 
-              [projectId]: ""
+              [projectId]:""
             })
           );
 
-        }, 3000);
+        },3000);
 
         return;
       }
 
-      // SUCCESS
-      showSuccess(data.message);
+      showSuccess(
+        data.message
+      );
 
       fetchProjects();
 
       e.target.reset();
 
-      // CLEAR ERROR
       setMemberError({
 
         ...memberError,
 
-        [projectId]: ""
+        [projectId]:""
       });
 
     } catch (error) {
 
       console.log(error);
 
+      showError(
+        "Server Error"
+      );
     }
   };
 
-  // =========================
-  // REMOVE MEMBER
-  // =========================
-
-  const removeMember = async (
+  const removeMember =
+  async(
     projectId,
     email
-  ) => {
+  )=>{
 
     try {
 
       const response =
-        await fetch(
-          `${process.env.REACT_APP_API_URL}/remove-member`,
-          {
-            method: "POST",
+      await fetch(
 
-            credentials:
-              "include",
+        `${process.env.REACT_APP_API_URL}/remove-member`,
 
-            headers: {
-              "Content-Type":
-                "application/json"
-            },
+        {
+          method:"POST",
 
-            body: JSON.stringify({
+          credentials:"include",
 
-              projectId,
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
 
-              email
-            })
-          }
-        );
+          body:JSON.stringify({
+
+            projectId,
+
+            email
+          })
+        }
+      );
 
       const data =
-        await response.json();
+      await response.json();
 
-      // ERROR
-      if (!response.ok) {
+      // UNAUTHORIZED
 
-        showError(data.message);
+      if(response.status === 401){
+
+        navigate("/login");
 
         return;
       }
 
-      // SUCCESS
-      showSuccess(data.message);
+      if(!response.ok){
+
+        showError(
+          data.message
+        );
+
+        return;
+      }
+
+      showSuccess(
+        data.message
+      );
 
       fetchProjects();
 
@@ -319,7 +423,9 @@ function Projects() {
 
       console.log(error);
 
-      showError("Server Error");
+      showError(
+        "Server Error"
+      );
     }
   };
 
@@ -337,8 +443,6 @@ function Projects() {
 
         </h1>
 
-        {/* SUCCESS */}
-
         {
           successMessage && (
 
@@ -349,8 +453,6 @@ function Projects() {
             </div>
           )
         }
-
-        {/* ERROR */}
 
         {
           errorMessage && (
@@ -363,10 +465,6 @@ function Projects() {
           )
         }
 
-        {/* =========================
-            FORM
-        ========================= */}
-
         <form
           className="project-form"
           onSubmit={
@@ -378,7 +476,7 @@ function Projects() {
             type="text"
             placeholder="Project Name"
             value={projectName}
-            onChange={(e) =>
+            onChange={(e)=>
               setProjectName(
                 e.target.value
               )
@@ -389,7 +487,7 @@ function Projects() {
           <textarea
             placeholder="Project Description"
             value={description}
-            onChange={(e) =>
+            onChange={(e)=>
               setDescription(
                 e.target.value
               )
@@ -399,7 +497,7 @@ function Projects() {
           <input
             type="date"
             value={dueDate}
-            onChange={(e) =>
+            onChange={(e)=>
               setDueDate(
                 e.target.value
               )
@@ -408,7 +506,7 @@ function Projects() {
 
           <select
             value={priority}
-            onChange={(e) =>
+            onChange={(e)=>
               setPriority(
                 e.target.value
               )
@@ -435,26 +533,42 @@ function Projects() {
 
           </select>
 
-          <button type="submit">
+          <button
+          type="submit"
+          disabled={creating}
+          >
 
-            + Create Project
+            {
+              creating
+              ?
+
+              "Creating..."
+
+              :
+
+              "+ Create Project"
+            }
 
           </button>
 
         </form>
 
-        {/* =========================
-            PROJECTS
-        ========================= */}
+        {
+          loading ? (
 
-        <div className="project-list">
+            <div className="small-loader">
 
-          {
-            projects.length === 0
+              Loading Projects...
+
+            </div>
+
+          ) : projects.length === 0
 
             ? (
 
               <div className="empty">
+
+                <i className="fa-solid fa-folder-open"></i>
 
                 <h2>
 
@@ -474,214 +588,205 @@ function Projects() {
 
             : (
 
-              projects.map(
-                (project) => (
+              <div className="project-list">
 
-                  <div
-                    className="project-card"
-                    key={project._id}
-                  >
+                {
+                  projects.map(
+                    (project)=>(
 
-                    {/* ICON */}
+                      <div
+                        className="project-card"
+                        key={project._id}
+                      >
 
-                    <div className="project-icon">
+                        <div className="project-icon">
 
-                      <i className="fa-solid fa-folder-open"></i>
+                          <i className="fa-solid fa-folder-open"></i>
 
-                    </div>
+                        </div>
 
-                    {/* TITLE */}
-
-                    <h2>
-
-                      {
-                        project.projectName
-                      }
-
-                    </h2>
-
-                    {/* DESCRIPTION */}
-<div className="project-description">
-
-  {project.description}
-
-</div>
-
-                    {/* DUE DATE */}
-
-                    <p className="due-date">
-
-                      <strong>
-
-                        Due Date:
-
-                      </strong>
-
-                      {
-
-                        project.dueDate
-
-                        ?
-
-                        new Date(
-                          project.dueDate
-                        ).toLocaleDateString()
-
-                        :
-
-                        " N/A"
-                      }
-
-                    </p>
-
-                    {/* PRIORITY */}
-
-                    <div
-                      className={`priority ${
-                        project.priority
-                        ?.toLowerCase()
-                      }`}
-                    >
-
-                      {
-                        project.priority ||
-                        "Medium"
-                      }
-
-                    </div>
-
-                    {/* MEMBERS */}
-
-                    <div className="members-section">
-
-                      <h4>
-
-                        Members
-
-                      </h4>
-
-                      {
-                        project.members
-                          .length === 0
-
-                        ? (
-
-                          <p className="no-members">
-
-                            No Members
-
-                          </p>
-                        )
-
-                        : (
-
-                          project.members.map(
-
-                            (
-                              member,
-                              index
-                            ) => (
-
-                              <div
-                                className="member-item"
-                                key={index}
-                              >
-
-                                <div className="member-info">
-
-                                  <h5>
-
-                                    {
-                                      member.name
-                                    }
-
-                                  </h5>
-
-                                  <p>
-
-                                    {
-                                      member.email
-                                    }
-
-                                  </p>
-
-                                </div>
-
-                                <button
-                                  className="remove-btn"
-                                  onClick={() =>
-                                    removeMember(
-                                      project._id,
-                                      member.email
-                                    )
-                                  }
-                                >
-
-                                  <i className="fa-solid fa-trash"></i>
-
-                                </button>
-
-                              </div>
-                            )
-                          )
-                        )
-                      }
-
-                    </div>
-
-                    {/* MEMBER ERROR */}
-
-                    {
-                      memberError[
-                        project._id
-                      ] && (
-
-                        <div className="member-error">
+                        <h2>
 
                           {
-                            memberError[
-                              project._id
-                            ]
+                            project.projectName
+                          }
+
+                        </h2>
+
+                        <div className="project-description">
+
+                          {
+                            project.description
                           }
 
                         </div>
-                      )
-                    }
 
-                    {/* ADD MEMBER */}
+                        <p className="due-date">
 
-                    <form
-                      className="member-form"
-                      onSubmit={(e) =>
-                        addMember(
-                          e,
-                          project._id
-                        )
-                      }
-                    >
+                          <strong>
 
-                      <input
-                        type="email"
-                        name="email"
-                        placeholder="Enter Member Email"
-                        required
-                      />
+                            Due Date:
 
-                      <button type="submit">
+                          </strong>
 
-                        Add Member
+                          {
 
-                      </button>
+                            project.dueDate
 
-                    </form>
+                            ?
 
-                  </div>
-                )
-              )
+                            new Date(
+                              project.dueDate
+                            ).toLocaleDateString()
+
+                            :
+
+                            " N/A"
+                          }
+
+                        </p>
+
+                        <div
+                          className={`priority ${
+                            project.priority
+                            ?.toLowerCase()
+                          }`}
+                        >
+
+                          {
+                            project.priority ||
+                            "Medium"
+                          }
+
+                        </div>
+
+                        <div className="members-section">
+
+                          <h4>
+
+                            Members
+
+                          </h4>
+
+                          {
+                            project.members
+                              .length === 0
+
+                            ? (
+
+                              <p className="no-members">
+
+                                No Members
+
+                              </p>
+                            )
+
+                            : (
+
+                              project.members.map(
+
+                                (
+                                  member,
+                                  index
+                                )=>(
+
+                                  <div
+                                    className="member-item"
+                                    key={index}
+                                  >
+
+                                    <div className="member-info">
+
+                                      <h5>
+
+                                        {
+                                          member.name
+                                        }
+
+                                      </h5>
+
+                                      <p>
+
+                                        {
+                                          member.email
+                                        }
+
+                                      </p>
+
+                                    </div>
+
+                                    <button
+                                      className="remove-btn"
+                                      onClick={()=>
+                                        removeMember(
+                                          project._id,
+                                          member.email
+                                        )
+                                      }
+                                    >
+
+                                      <i className="fa-solid fa-trash"></i>
+
+                                    </button>
+
+                                  </div>
+                                )
+                              )
+                            )
+                          }
+
+                        </div>
+
+                        {
+                          memberError[
+                            project._id
+                          ] && (
+
+                            <div className="member-error">
+
+                              {
+                                memberError[
+                                  project._id
+                                ]
+                              }
+
+                            </div>
+                          )
+                        }
+
+                        <form
+                          className="member-form"
+                          onSubmit={(e)=>
+                            addMember(
+                              e,
+                              project._id
+                            )
+                          }
+                        >
+
+                          <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter Member Email"
+                            required
+                          />
+
+                          <button type="submit">
+
+                            Add Member
+
+                          </button>
+
+                        </form>
+
+                      </div>
+                    )
+                  )
+                }
+
+              </div>
             )
-          }
-
-        </div>
+        }
 
       </div>
 

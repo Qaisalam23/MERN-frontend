@@ -25,14 +25,10 @@ function Dashboard() {
   const navigate =
   useNavigate();
 
-  // USER
-
   const [
     user,
     setUser
   ] = useState(null);
-
-  // ANALYTICS
 
   const [
     analytics,
@@ -46,35 +42,61 @@ function Dashboard() {
     pendingTasks:0
   });
 
-  // PROJECTS
-
   const [
     projects,
     setProjects
   ] = useState([]);
-
-  // TASKS
 
   const [
     tasks,
     setTasks
   ] = useState([]);
 
-  // LOAD DATA
+  const [
+    loading,
+    setLoading
+  ] = useState(true);
+
+  const [
+    error,
+    setError
+  ] = useState("");
 
   useEffect(()=>{
 
-    fetchDashboard();
-
-    fetchAnalytics();
-
-    fetchProjects();
-
-    fetchTasks();
+    loadDashboard();
 
   },[]);
 
-  // FETCH USER
+  const loadDashboard =
+  async()=>{
+
+    try{
+
+      await Promise.all([
+
+        fetchDashboard(),
+
+        fetchAnalytics(),
+
+        fetchProjects(),
+
+        fetchTasks()
+      ]);
+
+    }catch(error){
+
+      console.log(error);
+
+      setError(
+        "Failed to load dashboard"
+      );
+
+    }finally{
+
+      setLoading(false);
+    }
+  };
 
   const fetchDashboard =
   async()=>{
@@ -93,6 +115,19 @@ function Dashboard() {
         }
       );
 
+      // UNAUTHORIZED
+
+      if(response.status === 401){
+
+        localStorage.removeItem(
+          "userEmail"
+        );
+
+        navigate("/login");
+
+        return;
+      }
+
       const data =
       await response.json();
 
@@ -101,10 +136,12 @@ function Dashboard() {
     }catch(error){
 
       console.log(error);
+
+      setError(
+        "Unable to fetch user"
+      );
     }
   };
-
-  // FETCH ANALYTICS
 
   const fetchAnalytics =
   async()=>{
@@ -128,10 +165,17 @@ function Dashboard() {
     }catch(error){
 
       console.log(error);
+
+      // UNAUTHORIZED
+
+      if(
+        error.response?.status === 401
+      ){
+
+        navigate("/login");
+      }
     }
   };
-
-  // FETCH PROJECTS
 
   const fetchProjects =
   async()=>{
@@ -155,10 +199,17 @@ function Dashboard() {
     }catch(error){
 
       console.log(error);
+
+      // UNAUTHORIZED
+
+      if(
+        error.response?.status === 401
+      ){
+
+        navigate("/login");
+      }
     }
   };
-
-  // FETCH TASKS
 
   const fetchTasks =
   async()=>{
@@ -191,10 +242,17 @@ function Dashboard() {
     }catch(error){
 
       console.log(error);
+
+      // UNAUTHORIZED
+
+      if(
+        error.response?.status === 401
+      ){
+
+        navigate("/login");
+      }
     }
   };
-
-  // LOGOUT
 
   const handleLogout =
   async()=>{
@@ -212,7 +270,11 @@ function Dashboard() {
         }
       );
 
-      navigate("/");
+      localStorage.removeItem(
+        "userEmail"
+      );
+
+      navigate("/login");
 
     }catch(error){
 
@@ -227,8 +289,6 @@ function Dashboard() {
       <Sidebar />
 
       <div className="dashboard-main">
-
-        {/* NAVBAR */}
 
         <div className="navbar">
 
@@ -270,7 +330,16 @@ function Dashboard() {
 
         </div>
 
-        {/* STATS */}
+        {
+          error && (
+
+            <div className="error-message">
+
+              {error}
+
+            </div>
+          )
+        }
 
         <div className="dashboard-cards">
 
@@ -300,8 +369,6 @@ function Dashboard() {
 
         </div>
 
-        {/* PROJECTS */}
-
         <h2 className="section-title">
 
           My Projects
@@ -311,11 +378,29 @@ function Dashboard() {
         <div className="dashboard-grid">
 
           {
-            projects.length === 0 ? (
+            loading ? (
+
+              <div className="small-loader">
+
+                Loading Projects...
+
+              </div>
+
+            ) : projects.length === 0 ? (
 
               <div className="empty-card">
 
-                No Projects Found
+                <div>
+
+                  <i className="fa-solid fa-folder-open"></i>
+
+                  <h3>
+
+                    No Projects Found
+
+                  </h3>
+
+                </div>
 
               </div>
 
@@ -344,8 +429,6 @@ function Dashboard() {
 
         </div>
 
-        {/* TASKS */}
-
         <h2 className="section-title">
 
           Your Recent Tasks
@@ -355,11 +438,29 @@ function Dashboard() {
         <div className="dashboard-grid">
 
           {
-            tasks.length === 0 ? (
+            loading ? (
+
+              <div className="small-loader">
+
+                Loading Tasks...
+
+              </div>
+
+            ) : tasks.length === 0 ? (
 
               <div className="empty-card">
 
-                No Tasks Found
+                <div>
+
+                  <i className="fa-solid fa-list-check"></i>
+
+                  <h3>
+
+                    No Tasks Found
+
+                  </h3>
+
+                </div>
 
               </div>
 
@@ -415,7 +516,6 @@ function Dashboard() {
 
                       {
                         task.currentStatus
-            
                       }
 
                     </div>
