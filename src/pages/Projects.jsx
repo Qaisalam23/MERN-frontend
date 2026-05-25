@@ -117,7 +117,7 @@ function Projects() {
 
     fetchProjects();
 
-  },[]);
+  },[fetchProjects]);
 
   const showSuccess =
   (message)=>{

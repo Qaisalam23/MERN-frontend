@@ -99,7 +99,7 @@ function Tasks(){
 
     fetchProjects();
 
-  },[]);
+  },[fetchProjects]);
 
   const updateStatus =
   async(

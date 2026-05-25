@@ -92,7 +92,7 @@ function Analytics(){
 
     fetchAnalytics();
 
-  },[]);
+  },[fetchAnalytics]);
 
   return(
 

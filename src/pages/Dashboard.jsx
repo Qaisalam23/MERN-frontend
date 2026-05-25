@@ -62,11 +62,7 @@ function Dashboard() {
     setError
   ] = useState("");
 
-  useEffect(()=>{
-
-    loadDashboard();
-
-  },[]);
+  
 
   const loadDashboard =
   async()=>{
@@ -97,6 +93,11 @@ function Dashboard() {
       setLoading(false);
     }
   };
+  useEffect(()=>{
+
+    loadDashboard();
+
+  },[loadDashboard]);
 
   const fetchDashboard =
   async()=>{
